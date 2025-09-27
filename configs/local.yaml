@@ -1,0 +1,5 @@
+env: "local"
+storagePath: "./weatherApi/storage"
+http_server:
+  address: "localhost:8080"
+  
