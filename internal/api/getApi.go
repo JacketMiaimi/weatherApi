@@ -9,7 +9,6 @@ import (
 const (
 	api = "23a923037adc48fca74203916252709"
 	baseURL = "https://api.weatherapi.com/v1"
-
 )
 
 type WeatherResp struct {
