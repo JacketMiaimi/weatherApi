@@ -2,8 +2,8 @@ package redis
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -14,18 +14,13 @@ import (
 var ( 
 	cfg config.HTTPServer
 )
-type WeatherMarshal getApi.WeatherResp
 
-func (u WeatherMarshal) MarshalBinary() ([]byte, error) {
-	return json.Marshal(u)
-}
-
-func SaveDataRedis() (*redis.Client, error) {
-	db := redis.NewClient(&redis.Options{
+func SaveDataRedis(handler *getApi.WeatherResp) (*getApi.WeatherResp, error) {
+	rdb := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
-		// Username: "user",
 		Password: "1234",
 		DB: 0,
+		MaxRetries: 5,
 		ReadTimeout: cfg.TimeOut,
 		WriteTimeout: cfg.TimeOut,
 		DialTimeout: cfg.IdleTimeout,
@@ -33,40 +28,31 @@ func SaveDataRedis() (*redis.Client, error) {
 
 	ctx := context.Background()
 
-	_, err := db.Ping(ctx).Result()
+	_, err := rdb.Ping(ctx).Result()
 	if err != nil {
 		return nil, fmt.Errorf("error connecting on redis: %w", err)
 	}
 
 	// Запись данных 
 	// Set(контекст, ключ, значение, время в бд)
-	if err := db.Set(ctx, "key", "value",0).Err(); err != nil {
-		fmt.Printf("failed to set data, error: %s", err.Error())
-	}
-
-	if err = db.Set(ctx, "Dexter", "Morgan", 30 * time.Second).Err(); err != nil {
+	if err := rdb.Set(ctx, handler.Location.Name, handler.Current.TempC, time.Hour).Err(); err != nil {
 		fmt.Printf("failed to set data, error: %s", err.Error())
 	}
 
 	// Получение данных
-
-	val, err := db.Get(context.Background(), "key").Result()
+	val, err := rdb.Get(context.Background(), handler.Location.Name).Result()
 	if err == redis.Nil {
 		fmt.Println("value not found")
 	} else if err != nil {
 		fmt.Println("failed to get value, err:", err)
 	}
 
-	val2, err := db.Get(context.Background(), "Dexter").Result()
-	if err == redis.Nil {
-		fmt.Println("value not found")
-	} else if err != nil {
-		fmt.Println("failed to get value, err:", err)
+	fVal, err := strconv.ParseFloat(val, 64)
+	if err != nil {
+		fmt.Printf("failed parse float: %s", err.Error())
 	}
 
-	fmt.Printf("value: %v\n", val)
-	fmt.Printf("value: %v\n", val2)
+	handler.Current.TempC = fVal
 
-	return db, nil
-
+	return handler, nil
 }
