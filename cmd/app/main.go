@@ -2,28 +2,38 @@ package main
 
 import (
 	"fmt"
-	"go.mod/internal/redis"
+	rds "go.mod/internal/redis"
 	"log"
 	getApi "go.mod/internal/api"
 )
 
 func main() {
-	// _ = config.LoadConfig("C:\\IT\\Go\\petProject\\unfinished\\weatherApi\\configs\\local.yaml")
-	
-	City, err := getApi.WeatherHandler("London")
+	city := "Moscow"
+
+	data, err := getApi.WeatherHandler(city)
 	if err != nil {
-		log.Fatal("Error getting weather:", err)
+		log.Fatal("error getting weather:", err)
 	}
 
-	// fmt.Printf("city: %s\ntemp: %f", city.Location.Name, city.Current.TempC)
-
-	value,err := redis.SaveDataRedis(City)
-	if err != nil {
-		fmt.Printf("Error in redis: %v", err)
+	if err := rds.InitRedis(); err != nil {
+		log.Fatal("error to connected redis")
 	}
 
-	fmt.Println(
-		value.Location.Name,
-		value.Current.TempC,
-	)
+	// data,err = rds.SaveKey(data)
+	// if err != nil {
+	// 	fmt.Printf("error save in redis: %v", err)
+	// }
+
+	// if err := rds.DeleteKey(data); err != nil {
+	// 	fmt.Printf("error delete in redis: %v\n", err)
+	// }
+
+	res, err := rds.GetKey(data)
+	if err != nil {
+		fmt.Printf("error get in redis: %v\n", err)
+	} 
+
+	fmt.Printf("%s: %v\n",city,res)
+
+
 }
