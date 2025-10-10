@@ -3,56 +3,61 @@ package redis
 import (
 	"context"
 	"fmt"
-	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 	getApi "go.mod/internal/api"
-	"go.mod/internal/config"
 )
 
-var ( 
-	cfg config.HTTPServer
+var (
+	rdb = redis.NewClient(&redis.Options{
+	Addr: "localhost:6379",
+	Password: "QtyMqYWUwVeTysnCnnoneXMHRIgBoci/uA==",
+	DB: 0,
+	MaxRetries: 5,
+	ReadTimeout: 2 * time.Second,
+	WriteTimeout: 2 * time.Second,
+	DialTimeout: 3 * time.Second,
+});
+	ctx = context.Background()
 )
 
-func SaveDataRedis(handler *getApi.WeatherResp) (*getApi.WeatherResp, error) {
-	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6379",
-		Password: "1234",
-		DB: 0,
-		MaxRetries: 5,
-		ReadTimeout: cfg.TimeOut,
-		WriteTimeout: cfg.TimeOut,
-		DialTimeout: cfg.IdleTimeout,
-	})
-
-	ctx := context.Background()
-
+func InitRedis() error {
 	_, err := rdb.Ping(ctx).Result()
 	if err != nil {
-		return nil, fmt.Errorf("error connecting on redis: %w", err)
+		return fmt.Errorf("error connecting on redis: %w", err)
 	}
+	fmt.Println("Connected to redis")
+	return nil
+}
 
+func SaveKey(handler *getApi.WeatherResp) (*getApi.WeatherResp, error) {
 	// Запись данных 
 	// Set(контекст, ключ, значение, время в бд)
 	if err := rdb.Set(ctx, handler.Location.Name, handler.Current.TempC, time.Hour).Err(); err != nil {
 		fmt.Printf("failed to set data, error: %s", err.Error())
 	}
 
-	// Получение данных
-	val, err := rdb.Get(context.Background(), handler.Location.Name).Result()
-	if err == redis.Nil {
-		fmt.Println("value not found")
-	} else if err != nil {
-		fmt.Println("failed to get value, err:", err)
-	}
-
-	fVal, err := strconv.ParseFloat(val, 64)
-	if err != nil {
-		fmt.Printf("failed parse float: %s", err.Error())
-	}
-
-	handler.Current.TempC = fVal
-
 	return handler, nil
+}
+
+func GetKey(handler *getApi.WeatherResp) (string, error) {
+	val, err := rdb.Get(ctx, handler.Location.Name).Result()
+	if err == redis.Nil {
+		return  "", fmt.Errorf("error value not found: %w", err)
+	} else if err != nil {
+		return "", fmt.Errorf("error get data in redis: %w", err)
+	}
+
+	return val, nil
+}
+
+func DeleteKey(handler *getApi.WeatherResp) error {
+	if err := rdb.Del(ctx, handler.Location.Name).Err(); err != nil {
+		return fmt.Errorf("error delete in redis: %v", err)
+	}
+	
+	fmt.Println("successfully removed")
+
+	return nil
 }
