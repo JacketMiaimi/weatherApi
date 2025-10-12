@@ -1,39 +1,42 @@
 package main
 
 import (
-	"fmt"
-	rds "go.mod/internal/redis"
-	"log"
-	getApi "go.mod/internal/api"
+	"log/slog"
+	"os"
+
+	"go.mod/internal/config"
+)
+
+const (
+	envLocal = "local"
+	envDev = "dev"
+	envProd = "prod"
 )
 
 func main() {
-	city := "Moscow"
+	cfg := config.LoadConfig()
 
-	data, err := getApi.WeatherHandler(city)
-	if err != nil {
-		log.Fatal("error getting weather:", err)
+	log := setupLogger(cfg.Env)
+	
+	log = log.With(slog.String("env",cfg.Env))
+
+	log.Info("starting weather-api")
+	log.Info("initializing server", slog.String("address", cfg.Adress))
+
+
+}
+
+func setupLogger(env string) *slog.Logger {
+	var log *slog.Logger
+	
+	switch env {
+	case envLocal:
+		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	case envDev:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
+	case envProd:
+		log = slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelInfo}))
 	}
 
-	if err := rds.InitRedis(); err != nil {
-		log.Fatal("error to connected redis")
-	}
-
-	// data,err = rds.SaveKey(data)
-	// if err != nil {
-	// 	fmt.Printf("error save in redis: %v", err)
-	// }
-
-	// if err := rds.DeleteKey(data); err != nil {
-	// 	fmt.Printf("error delete in redis: %v\n", err)
-	// }
-
-	res, err := rds.GetKey(data)
-	if err != nil {
-		fmt.Printf("error get in redis: %v\n", err)
-	} 
-
-	fmt.Printf("%s: %v\n",city,res)
-
-
+	return log
 }
