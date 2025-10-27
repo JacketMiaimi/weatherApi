@@ -9,26 +9,25 @@ import (
 
 const (
 	envLocal = "local"
-	envDev = "dev"
-	envProd = "prod"
+	envDev   = "dev"
+	envProd  = "prod"
 )
 
 func main() {
-	cfg := config.LoadConfig()
+	cfg := config.LoadConfig("PATH_CONFIG")
 
 	log := setupLogger(cfg.Env)
-	
-	log = log.With(slog.String("env",cfg.Env))
+
+	log = log.With(slog.String("env", cfg.Env))
 
 	log.Info("starting weather-api")
 	log.Info("initializing server", slog.String("address", cfg.Adress))
-
 
 }
 
 func setupLogger(env string) *slog.Logger {
 	var log *slog.Logger
-	
+
 	switch env {
 	case envLocal:
 		log = slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug}))
