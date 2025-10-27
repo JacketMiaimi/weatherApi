@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	getApi "go.mod/internal/api"
 )
 
 var (
@@ -31,18 +30,18 @@ func InitRedis() error {
 	return nil
 }
 
-func SaveKey(handler *getApi.WeatherResp) (*getApi.WeatherResp, error) {
+func SaveKey(key string, temp string) (string,string, error) {
 	// Запись данных 
 	// Set(контекст, ключ, значение, время в бд)
-	if err := rdb.Set(ctx, handler.Location.Name, handler.Current.TempC, time.Hour).Err(); err != nil {
+	if err := rdb.Set(ctx, key, temp, time.Hour).Err(); err != nil {
 		fmt.Printf("failed to set data, error: %s", err.Error())
 	}
 
-	return handler, nil
+	return key, temp, nil
 }
 
-func GetKey(handler *getApi.WeatherResp) (string, error) {
-	val, err := rdb.Get(ctx, handler.Location.Name).Result()
+func GetKey(key string) (string, error) {
+	val, err := rdb.Get(ctx, key).Result()
 	if err == redis.Nil {
 		return  "", fmt.Errorf("error value not found: %w", err)
 	} else if err != nil {
@@ -52,8 +51,8 @@ func GetKey(handler *getApi.WeatherResp) (string, error) {
 	return val, nil
 }
 
-func DeleteKey(handler *getApi.WeatherResp) error {
-	if err := rdb.Del(ctx, handler.Location.Name).Err(); err != nil {
+func DeleteKey(key string) error {
+	if err := rdb.Del(ctx, key).Err(); err != nil {
 		return fmt.Errorf("error delete in redis: %v", err)
 	}
 	
