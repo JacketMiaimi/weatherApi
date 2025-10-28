@@ -3,6 +3,7 @@ package redis
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -10,14 +11,14 @@ import (
 
 var (
 	rdb = redis.NewClient(&redis.Options{
-	Addr: "localhost:6379",
-	Password: "QtyMqYWUwVeTysnCnnoneXMHRIgBoci/uA==",
-	DB: 0,
-	MaxRetries: 5,
-	ReadTimeout: 2 * time.Second,
-	WriteTimeout: 2 * time.Second,
-	DialTimeout: 3 * time.Second,
-});
+		Addr:         "localhost:6379",
+		Password:     "QtyMqYWUwVeTysnCnnoneXMHRIgBoci/uA==",
+		DB:           0,
+		MaxRetries:   5,
+		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 2 * time.Second,
+		DialTimeout:  3 * time.Second,
+	})
 	ctx = context.Background()
 )
 
@@ -30,20 +31,20 @@ func InitRedis() error {
 	return nil
 }
 
-func SaveKey(key string, temp string) (string,string, error) {
-	// Запись данных 
+func SaveKey(key string, temp string) error {
+	// Запись данных
 	// Set(контекст, ключ, значение, время в бд)
 	if err := rdb.Set(ctx, key, temp, time.Hour).Err(); err != nil {
-		fmt.Printf("failed to set data, error: %s", err.Error())
+		slog.Error("failed to set data","error:", err.Error())
 	}
 
-	return key, temp, nil
+	return nil
 }
 
 func GetKey(key string) (string, error) {
 	val, err := rdb.Get(ctx, key).Result()
 	if err == redis.Nil {
-		return  "", fmt.Errorf("error value not found: %w", err)
+		return "", fmt.Errorf("error value not found: %w", err)
 	} else if err != nil {
 		return "", fmt.Errorf("error get data in redis: %w", err)
 	}
@@ -55,8 +56,5 @@ func DeleteKey(key string) error {
 	if err := rdb.Del(ctx, key).Err(); err != nil {
 		return fmt.Errorf("error delete in redis: %v", err)
 	}
-	
-	fmt.Println("successfully removed")
-
 	return nil
 }
