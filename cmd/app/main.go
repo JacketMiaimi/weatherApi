@@ -4,6 +4,9 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+
 	"go.mod/internal/config"
 )
 
@@ -22,6 +25,18 @@ func main() {
 
 	log.Info("starting weather-api")
 	log.Info("initializing server", slog.String("address", cfg.Adress))
+
+	// router & middleware
+
+	r := chi.NewRouter()
+	
+	r.Use(middleware.Logger)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.URLFormat)
+
+	
 
 }
 
