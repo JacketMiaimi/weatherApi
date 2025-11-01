@@ -31,17 +31,17 @@ func InitRedis() error {
 	return nil
 }
 
-func SaveKey(key string, temp string) error {
+func Save(key string, val float64) error {
 	// Запись данных
 	// Set(контекст, ключ, значение, время в бд)
-	if err := rdb.Set(ctx, key, temp, time.Hour).Err(); err != nil {
+	if err := rdb.Set(ctx, key, val, time.Hour).Err(); err != nil {
 		slog.Error("failed to set data","error:", err.Error())
 	}
 
 	return nil
 }
 
-func GetKey(key string) (string, error) {
+func Get(key string) (string, error) {
 	val, err := rdb.Get(ctx, key).Result()
 	if err == redis.Nil {
 		return "", fmt.Errorf("error value not found: %w", err)
@@ -49,10 +49,12 @@ func GetKey(key string) (string, error) {
 		return "", fmt.Errorf("error get data in redis: %w", err)
 	}
 
+
+
 	return val, nil
 }
 
-func DeleteKey(key string) error {
+func Delete(key string) error {
 	if err := rdb.Del(ctx, key).Err(); err != nil {
 		return fmt.Errorf("error delete in redis: %v", err)
 	}
