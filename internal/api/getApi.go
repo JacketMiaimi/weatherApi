@@ -28,13 +28,13 @@ func WeatherHandler(city string) (*WeatherResp, error) {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return nil, fmt.Errorf("%s\ncouldn`t get data from api: %w",op, err)
+		return nil, fmt.Errorf("%scouldn`t get data from api: %w",op, err)
 	} 
 	defer resp.Body.Close()
 
 	var data WeatherResp
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
-		return nil, fmt.Errorf("%s\ncouldn`t decode body: %w", op, err)
+		return nil, fmt.Errorf("%scouldn`t decode body: %w", op, err)
 	}
 
 	return &data, nil
