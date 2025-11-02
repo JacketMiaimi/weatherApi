@@ -23,12 +23,12 @@ make run
 <a href="https://timeweb.cloud/tutorials/redis/ustanovka-i-nastrojka-redis-dlya-raznyh-os">Гайд</a> 
 
 ## Настройка
-В **configs** можно поменять:
+В **configs.yaml** можно поменять:
 
 * **env** - место окружение <br>
 * **http_server** - настройка сервера <br>
 * **address** - задаем адресс<br>
-   **timeout** - время ожидание<br>
+* **timeout** - время ожидание<br>
 * **idle_timeout** - ожидание бездействия<br> 
 
 В файле **.env** нужно указать: <br>
