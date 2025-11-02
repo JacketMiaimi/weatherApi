@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"log/slog"
 	"time"
-
+	"os"
 	"github.com/redis/go-redis/v9"
 )
 
 var (
 	rdb = redis.NewClient(&redis.Options{
 		Addr:         "localhost:6379",
-		Password:     "QtyMqYWUwVeTysnCnnoneXMHRIgBoci/uA==",
+		Password:     os.Getenv("PATH_CONFIG"),
 		DB:           0,
 		MaxRetries:   5,
 		ReadTimeout:  2 * time.Second,
