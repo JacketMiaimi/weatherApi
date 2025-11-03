@@ -45,10 +45,10 @@ address/get/{city}
 ```
 <br>
 
-# Project URL
-https://roadmap.sh/projects/weather-api-wrapper-service 
-
 Пример
 ```
 localhost:8080/get/Moscow
 ```
+
+# Project URL
+https://roadmap.sh/projects/weather-api-wrapper-service 
